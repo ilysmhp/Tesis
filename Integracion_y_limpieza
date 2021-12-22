@@ -5,12 +5,8 @@
 # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
 options(scipen=999)
-setwd <- 'C:/Users/Coffe/Documents/Matematicas Aplicadas/Tesis'
 
-setwd(setwd)
 coneval <- read.csv("indicadores de pobreza municipal 2015.csv")
-setwd(paste(setwd,'/Datos encuesta INEGI 2020', sep=""))
-
 
 aguascalientes <- read.csv("aguascalientes.csv", encoding = "UTF-8")
 baja_california_sur <- read.csv("baja california sur.csv", encoding = "UTF-8")
@@ -68,8 +64,7 @@ dim(inegi) == dim(aguascalientes) + dim(baja_california) + dim(baja_california_s
   dim(tamaulipas) + dim(tlaxcala) + dim(veracruz)+
   dim(yucatan) + dim(zacatecas)
 
-rm(list=setdiff(ls(), c("inegi","coneval", "setwd")))
-
+rm(list=setdiff(ls(), c("inegi","coneval")))
 
 # Existen columnas en donde las tasas para las variables del coneval son calculadas
 # previamente, se descartan ya que estan redondeadas
@@ -255,5 +250,4 @@ inegi_y_coneval <- inegi_y_coneval[ , -which(names(inegi_y_coneval) %in%
                                                  "clave_entidad" , 
                                                  "clave_municipio"))]
 
-setwd(paste(setwd,'/Data R', sep=""))
 save.image("Codigo Tesis Parte 1- Integracion y Limpieza de datos.RData")
