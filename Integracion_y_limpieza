@@ -1,0 +1,259 @@
+# * * * * * * * * * * * * * * * PASO 1. 1 * * * * * * * * * * * * * *
+# * Integración y limpieza de los datos:
+# * Indicadores de pobreza municipal - CONEVAL
+# * Censo de población y vivienda 2020 - INEGI 
+# * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+options(scipen=999)
+setwd <- 'C:/Users/Coffe/Documents/Matematicas Aplicadas/Tesis'
+
+setwd(setwd)
+coneval <- read.csv("indicadores de pobreza municipal 2015.csv")
+setwd(paste(setwd,'/Datos encuesta INEGI 2020', sep=""))
+
+
+aguascalientes <- read.csv("aguascalientes.csv", encoding = "UTF-8")
+baja_california_sur <- read.csv("baja california sur.csv", encoding = "UTF-8")
+baja_california <- read.csv("baja california.csv", encoding = "UTF-8")
+campeche <- read.csv("campeche.csv", encoding = "UTF-8")
+chiapas <- read.csv("chiapas.csv", encoding = "UTF-8")
+chihuahua <- read.csv("chihuahua.csv", encoding = "UTF-8")
+ciudad_mexico <- read.csv("ciudad de mexico.csv", encoding = "UTF-8")
+coahuila <- read.csv("coahuila.csv", encoding = "UTF-8")
+colima <- read.csv("colima.csv", encoding = "UTF-8")
+durango <- read.csv("durango.csv", encoding = "UTF-8")
+edo_mexico <- read.csv("edo mexico.csv", encoding = "UTF-8")
+guanajuato <- read.csv("guanajuato.csv", encoding = "UTF-8")
+guerrero <- read.csv("guerrero.csv", encoding = "UTF-8")
+hidalgo <- read.csv("hidalgo.csv", encoding = "UTF-8")
+jalisco <- read.csv("jalisco.csv", encoding = "UTF-8")
+michoacan <- read.csv("michoacan.csv", encoding = "UTF-8")
+morelos <- read.csv("morelos.csv", encoding = "UTF-8")
+nayarit <- read.csv("nayarit.csv", encoding = "UTF-8")
+nuevo_leon <- read.csv("nuevo leon.csv", encoding = "UTF-8")
+oaxaca <- read.csv("oaxaca.csv", encoding = "UTF-8")
+puebla <- read.csv("puebla.csv", encoding = "UTF-8")
+queretaro <- read.csv("queretaro.csv", encoding = "UTF-8")
+quintana_roo <- read.csv("quintana roo.csv", encoding = "UTF-8")
+san_luis_potosi <- read.csv("san luis potosi.csv", encoding = "UTF-8")
+sinaloa <- read.csv("sinaloa.csv", encoding = "UTF-8")
+sonora <- read.csv("sonora.csv", encoding = "UTF-8")
+tabasco <- read.csv("tabasco.csv", encoding = "UTF-8")
+tamaulipas <- read.csv("tamaulipas.csv", encoding = "UTF-8")
+tlaxcala <- read.csv("tlaxcala.csv", encoding = "UTF-8")
+veracruz <- read.csv("veracruz.csv", encoding = "UTF-8")
+yucatan <- read.csv("yucatan.csv", encoding = "UTF-8")
+zacatecas <- read.csv("zacatecas.csv", encoding = "UTF-8")
+
+# Se agregan todos los datos a un solo data frame
+inegi <- rbind(aguascalientes,baja_california, baja_california_sur,campeche, 
+               chiapas,chihuahua,ciudad_mexico,coahuila, 
+               colima, durango,edo_mexico, guanajuato,
+               guerrero, hidalgo, jalisco, michoacan, 
+               morelos, nayarit, nuevo_leon, oaxaca, 
+               puebla,queretaro, quintana_roo, san_luis_potosi,
+               sinaloa, sonora, tabasco, tamaulipas, 
+               tlaxcala, veracruz,yucatan, zacatecas)
+
+# Se comprueba que los datos tengan las dimensiones correctas
+dim(inegi) == dim(aguascalientes) + dim(baja_california) + dim(baja_california_sur) + 
+  dim(campeche) + dim(chiapas) + dim(chihuahua) + 
+  dim(ciudad_mexico) + dim(coahuila) +dim(colima) + 
+  dim(durango) + dim(edo_mexico) + dim(guanajuato) + 
+  dim(guerrero) + dim(hidalgo) + dim(jalisco) + 
+  dim(michoacan) + dim(morelos) + dim(nayarit) +
+  dim(nuevo_leon) + dim(oaxaca) + dim(puebla) + 
+  dim(queretaro) + dim(quintana_roo) + dim(san_luis_potosi) + 
+  dim(sinaloa) + dim(sonora) + dim(tabasco) + 
+  dim(tamaulipas) + dim(tlaxcala) + dim(veracruz)+
+  dim(yucatan) + dim(zacatecas)
+
+rm(list=setdiff(ls(), c("inegi","coneval", "setwd")))
+
+
+# Existen columnas en donde las tasas para las variables del coneval son calculadas
+# previamente, se descartan ya que estan redondeadas
+coneval <- coneval[ , -which(names(coneval) %in% c("pobreza", "pobreza_e",
+                                                   "pobreza_m","vul_car",
+                                                   "vul_ing","npnv",
+                                                   "ic_rezedu","ic_asalud",
+                                                   "ic_segsoc","ic_cv",
+                                                   "ic_sbv","ic_ali",
+                                                   "carencias","carencias3",
+                                                   "plb","plbm"))]
+
+# Nos interesa unicamente el total por municipio en la base de datos del inegi
+library(stringr)
+inegi <- inegi[which(inegi['NOM_LOC']=='Total del Municipio'),]
+
+# Cambiamos el nombre de entidad a uno más sencillo
+names(inegi)[which(names(inegi)=="X.U.FEFF.ENTIDAD")] = "ENTIDAD"
+
+
+# * * * * * * * * * * * * * * *  PASO 1.2 * * * * * * * * * * * * * * * * * * * 
+# * * Se hacen los cambios de los nombres en municipios y estados 
+# * * * * * * * * * * * * * * *  * * *  * * * * * * * * * * * * * * * * * * * * 
+
+
+# Se deben de realizar cambios en los nombres de algunos
+# estados y municipios para poder hacer un join
+# no se hace por la clave del municipio/estado porque
+# se fichean de forma diferente en el coneval e inegi
+
+# Cambio de nombre de estados:
+michoacan <- which(inegi['NOM_ENT'] == 'Michoacán de Ocampo')
+inegi['NOM_ENT'][michoacan,] <- 'Michoacán' 
+rm(michoacan)
+
+veracruz <- which(inegi['NOM_ENT'] == 'Veracruz de Ignacio de la Llave')
+inegi['NOM_ENT'][veracruz,] <- 'Veracruz'
+rm(veracruz)
+
+coahuila <- which(inegi['NOM_ENT'] == 'Coahuila de Zaragoza')
+inegi['NOM_ENT'][coahuila,] <- 'Coahuila'
+rm(coahuila)
+
+cdmx <- which(coneval['entidad_federativa'] == 'Distrito Federal')
+coneval['entidad_federativa'][cdmx,] <- 'Ciudad de México'
+rm(cdmx)
+
+
+# Cambio de nombre de municipios:
+i <- which(coneval['municipio'] == 'Batopilas')
+coneval['municipio'][i,] <- 'Batopilas de Manuel Gómez Morín' ; rm(i)
+
+i <- which(coneval['municipio'] == 'Silao')
+coneval['municipio'][i,] <- 'Silao de la Victoria' ; rm(i)
+
+i <- which(coneval['municipio'] == 'Acambay')
+coneval['municipio'][i,] <- 'Acambay de Ruíz Castañeda' ; rm(i)
+
+i <- which(coneval['municipio'] == 'José Joaquin de Herrera')
+coneval['municipio'][i,] <- 'José Joaquín de Herrera' ; rm(i)
+
+i <- which(coneval['municipio'] == 'Tlaquepaque')
+coneval['municipio'][i,] <- 'San Pedro Tlaquepaque' ; rm(i)
+
+i <- which(coneval['municipio'] == 'Jonacatepec')
+coneval['municipio'][i,] <- 'Jonacatepec de Leandro Valle' ; rm(i)
+
+i <- which(coneval['municipio'] == 'Tlaltizapán')
+coneval['municipio'][i,] <- 'Tlaltizapán de Zapata' ; rm(i)
+
+i <- grep("Gral", coneval$municipio)
+coneval$municipio[i] <- str_replace_all(coneval$municipio[i], 'Gral.', 'General') ; rm(i)
+
+i <- grep("Dr.", coneval$municipio)
+coneval$municipio[i] <- str_replace_all(coneval$municipio[i], 'Dr.', 'Doctor') ; rm(i)
+
+i <- which(coneval['municipio'] == 'Doctor Belisario Domínguez')
+coneval['municipio'][i,] <- 'Dr. Belisario Domínguez' ; rm(i)
+
+i <- which(coneval['municipio'] == 'Heroica Ciudad de Juchitán de Zaragoza')
+coneval['municipio'][i,] <- 'Juchitán de Zaragoza' ; rm(i)
+
+i <- which(coneval['municipio'] == 'Villa de Tututepec de Melchor Ocampo')
+coneval['municipio'][i,] <- 'Villa de Tututepec' ; rm(i)
+
+i <- which(coneval['municipio'] == 'Santiago Chazumba')
+coneval['municipio'][i,] <- 'Villa de Santiago Chazumba' ; rm(i)
+
+i <- which(coneval['municipio'] == 'Medellín')
+coneval['municipio'][i,] <- 'Medellín de Bravo' ; rm(i)
+
+i <- which(coneval['municipio'] == 'Zacualpan de Amilpas')
+coneval['municipio'][i,] <- 'Zacualpan' ; rm(i)
+
+i <- which(coneval['municipio'] == 'Zacualpan' &
+             coneval['entidad_federativa'] == 'Morelos' )
+coneval['municipio'][i,] <- 'Zacualpan de Amilpas' ; rm(i)
+
+i <- which(coneval['municipio'] == 'Carmen' &
+             coneval['entidad_federativa'] == 'Nuevo León' )
+coneval['municipio'][i,] <- 'El Carmen' ; rm(i)
+
+i <- which(inegi['NOM_ENT'] == 'Oaxaca' & inegi['MUN'] == '208')
+inegi['NOM_MUN'][i,] <- 'San Juan Mixtepec -Dto. 08 -' ; rm(i)
+
+i <- which(inegi['NOM_ENT'] == 'Oaxaca' & inegi['MUN'] == '209')
+inegi['NOM_MUN'][i,] <- 'San Juan Mixtepec -Dto. 26 -' ; rm(i)
+
+i <- which(inegi['NOM_ENT'] == 'Oaxaca' & inegi['MUN'] == '318')
+inegi['NOM_MUN'][i,] <- 'San Pedro Mixtepec -Dto. 22 -' ; rm(i)
+
+i <- which(inegi['NOM_ENT'] == 'Oaxaca' & inegi['MUN'] == '319')
+inegi['NOM_MUN'][i,] <- 'San Pedro Mixtepec -Dto. 26 -' ; rm(i)
+
+j <- which(inegi['NOM_MUN'] == 'Heroica Villa Tezoatlán de Segura y Luna, Cuna de')
+inegi['NOM_MUN'][j,] <- 'Tezoatlán de Segura y Luna' ; rm(j)
+
+j <- which(inegi['NOM_MUN'] == 'San Mateo Yucutindoo')
+inegi['NOM_MUN'][j,] <- 'San Mateo Yucutindó' ; rm(j)
+
+
+# Existen 12 municipios nuevos, que aparecen en la encuesta del inegi 2020
+# pero no aparecen en la encuesta del coneval del 2015:
+dim(inegi)-dim(coneval)
+
+
+# * * * * * * * * * * * * * * *  PASO 1.3 * * * * * * * * * * * * * * * * * * * * 
+# * ** Hacer un join entre los datos del inegi y los del coneval
+# * * * * * * * * * * * * * * *  * * *  * * * * * * * * * * * * * * * * * * * * 
+
+# Se cambian los nombres de algunas variables para que se pueda
+# hacer un join correctamente 
+
+names(inegi)[which(names(inegi)=="NOM_ENT")] = "estado"
+names(inegi)[which(names(inegi)=="NOM_MUN")] = "municipio"
+
+names(coneval)[which(names(coneval)=="entidad_federativa")] = "estado"
+names(coneval)[which(names(coneval)=="municipio")] = "municipio"
+
+
+# Se necesita juntar el nombre del estado y municipio, ya que hay municipios
+# que se llaman igual en diferentes estados 
+coneval$paste <- paste(paste(coneval$estado, '-'), coneval$municipio)
+inegi$paste <- paste(paste(inegi$estado, '-'), inegi$municipio)
+
+
+# Aquellos municipios que estan en el inegi, pero no en el coneval:
+library(sqldf)
+inter <- merge(coneval, inegi, by=c('paste'))
+inter <- data.frame(inter$paste)
+
+# Aquellos que estan en el coneval y no en la intersección de ambos
+sqldf("SELECT *
+       FROM coneval
+       WHERE paste NOT IN inter")
+
+# Aquellos que estan en el inegi y no en la intersección de ambos
+sqldf("SELECT *
+       FROM inegi
+       WHERE paste NOT IN inter") #existen 12
+
+rm(inter)
+
+# Se elimina el estado y municipio del coneval antes de hacer el 
+# left join porque de otro modo se tendrán dos veces,
+# igual las claves porque no son necesarias 
+
+coneval <- coneval[ , -which(names(coneval) %in% c("clave_entidad",
+                                                   "estado",
+                                                   "clave_municipio",
+                                                   "municipio"))]
+
+# Se hace el left join, ya que el inegi tiene más datos que el coneval
+inegi_y_coneval <- sqldf("SELECT *
+                         FROM inegi LEFT JOIN coneval ON inegi.paste = coneval.paste")
+
+
+# Se eliminan las columnas que no se necesitan
+inegi_y_coneval <- inegi_y_coneval[ , -which(names(inegi_y_coneval) %in%
+                                               c("LOC","NOM_LOC",
+                                                 "LONGITUD","LATITUD","ALTITUD",
+                                                 "paste",
+                                                 "clave_entidad" , 
+                                                 "clave_municipio"))]
+
+setwd(paste(setwd,'/Data R', sep=""))
+save.image("Codigo Tesis Parte 1- Integracion y Limpieza de datos.RData")
