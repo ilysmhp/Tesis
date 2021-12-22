@@ -1,0 +1,90 @@
+load('~/Codigo Tesis Parte 3- Imputacion de los datos faltantes.RData')
+
+# install.packages("NbClust")
+library(NbClust);library(ClustGeo);library(ggplot2)
+library("readxl");library(purrr); library(cluster)
+library(factoextra)
+
+# * * * * * * * * * * * * * * *  PASO 4 * * * * * * * * * * * * * * * * * * * * 
+# * * * * * * * *  * Obtener la clasificación socioeconomica* * * * * * * * * * *
+# * * * * * * * * * * * * * * *  * * *  * * * * * * * * * * * * * * * * * * * * 
+
+# Se crea una función para elegir las variables de la encuesta inegi
+# puestas con una x en la columna correspondiente del excel 
+
+# Función para obtener la matriz D0 
+obten_D0 <- function(var){
+  col <- which(names(variables_inegi)==var)
+  
+  # Solo se conservan los renglones de las variables elegidas
+  variables_inegi <- variables_inegi[which(variables_inegi[,col]=="x"),]
+  
+  # Se convervan todas las variables del coneval (19) y las n de vn
+  # del coneval ya no nos interesa la de población, entonces es a partir
+  # de pobreza_pob hasta plbm_pob
+  
+  D0 <- data_tasas[,variables_inegi$Variables]
+  i <- which(names(subdata_coneval)=="pobreza_pob")
+  j <- which(names(subdata_coneval)=="plbm_pob")
+  D0 <- cbind(D0,data_tasas[ ,i:j])
+  rm(i);rm(j)
+  
+  
+  # Las dimensiones coinciden:
+  # las n variables elegidas del inegi +  las 19 del coneval 
+  # - 3 (estado, municipio y poblacion)
+  
+  dim(D0)[2]==length(which(variables_inegi[,col]=="x"))  + dim(subdata_coneval)[2] - 3
+  
+  rm(col);rm(var)
+  
+  # Los que son promedios se tienen que reescalar para que
+  # todos los datos estén en tasas
+  
+  if("PNACENT" %in% colnames(D0)){
+    D0["PNACENT"] <- D0["PNACENT"]/data_tasas["POBTOT"]
+  }
+  
+  if("PNACOE" %in% colnames(D0)){
+    D0["PNACOE"] <- D0["PNACOE"]/data_tasas["POBTOT"]
+  }
+  
+  
+  return(D0) 
+}
+
+# * * * * * * * * * * * * * * *  PASO 4.1 * * * * * * * * * * * * * * * * * * * 
+# * * * * * * * * * * * Se obtiene la K adecuada  * * * * * * * * * * * * * 
+# * * * * * * * * * * * * * * *  * * *  * * * * * * * * * * * * * * * * * * * * 
+variables_inegi <- read_excel("Comparacion entre variables.xlsx")
+D0 <- obten_D0("v9")
+
+# Se crea una nueva variable #Población de 15 a 24 que asiste 
+# a la escuela 
+extras <- c("P15A17A","P18A24A","P_15A17","P_18A24")
+extras <- inegi_y_coneval[extras]
+extras <- data.frame(sapply(extras, as.numeric))
+D0$PDP15A24A <- rowSums(extras[c("P15A17A","P18A24A")]) / 
+  rowSums(extras[c("P_15A17","P_18A24")]) 
+D0 <- D0[ , -which(names(D0) %in% c("P15A17A","P18A24A"))]
+rm(extras)
+
+# Se calcula el número de K adecuado: tarda mucho 
+datos <- D0
+
+gap <- fviz_nbclust(x = datos, FUNcluster = hcut,
+                    method = "gap", k.max = 10, dis="manhattan") +
+  labs(title = "Número óptimo de clusters")
+# Son 5 clusters los que se uilizan 
+
+
+# * * * * * * * * * * * * * * *  PASO 4.1 * * * * * * * * * * * * * * * * * * * 
+# * * * * * * * * * * * Se obtiene la K adecuada  * * * * * * * * * * * * * 
+# * * * * * * * * * * * * * * *  * * *  * * * * * * * * * * * * * * * * * * * * 
+D0 <- dist(D0, method="euclidean")
+tree <- hclustgeo(D0)
+plot(tree,hang=-1, label=FALSE, xlab="", sub="", main="")
+rect.hclust(tree, k=5, border=rainbow(5))
+
+
+save.image("Codigo Tesis Parte 4- Eleccion de K.RData")
