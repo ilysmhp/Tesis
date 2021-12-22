@@ -1,0 +1,68 @@
+load('~/Matematicas Aplicadas/Tesis/Data R/Codigo Tesis Parte 1- Integracion y Limpieza de datos.RData')
+
+# * * * * * * * * * * * * * * *  PASO 2 * * * * * * * * * * * * * * * * * * * * 
+# * * * * * * * * Transformar las variables en tasas  * * * * * * * * * * * * *
+# * * * * * * * * * * * * * * *  * * *  * * * * * * * * * * * * * * * * * * * * 
+
+# * * * * * * * * * * * * * * *  PASO 2.1 * * * * * * * * * * * * * * * * * * * * 
+# * * * * * * * Transformar las variables en tasas del INEGI * * * * * * * * * * * * *
+# * * * * * * * * * * * * * * *  * * *  * * * * * * * * * * * * * * * * * * * * 
+
+# Los datos del inegi van desde POBTOT hasta TAMLOC
+subdata_inegi <- inegi_y_coneval[which( colnames(inegi_y_coneval)=="POBTOT"): 
+                                   which( colnames(inegi_y_coneval)=="TAMLOC")]
+
+#Se convierten los datos a numericos
+subdata_inegi <- sapply(subdata_inegi, as.numeric)
+subdata_inegi <- as.data.frame(subdata_inegi)
+
+# Se usa un archivo auxiliar para calcular las tasas del inegi
+
+para_tasas_inegi <- read.csv("tasas inegi.csv")
+names(para_tasas_inegi) <- c("variable","division")
+
+# No todas las variabes se deben de convertir en tasas
+para_tasas_inegi <- para_tasas_inegi[which(para_tasas_inegi$division!='no se divide'),]
+
+# Se realiza la conversion 
+tasas_inegi <- data.frame(matrix(NA, nrow = dim(inegi)[1], ncol = 0))
+for(v in 1:dim(para_tasas_inegi)[1]){
+  tasas_inegi <- cbind(tasas_inegi,
+                       subdata_inegi[para_tasas_inegi[v,1]] / subdata_inegi[para_tasas_inegi[v,2]])
+};rm(v)
+
+# Se confirma que se realizo correctamente 
+dim(para_tasas_inegi)[1] == dim(tasas_inegi)[2]
+names(tasas_inegi)==para_tasas_inegi[,1]
+rm(para_tasas_inegi)
+
+
+# * * * * * * * * * * * * * * *  PASO 2.2 * * * * * * * * * * * * * * * * * * * * 
+# * * * * * * * Transformar las variables en tasas del CONEVAL * * * * * * * * * * * * *
+# * * * * * * * * * * * * * * *  * * *  * * * * * * * * * * * * * * * * * * * * 
+
+# Las variables del coneval se divien entre 'poblacion', a partir de la variable
+# pobreza_pob y hasta plbm_pob, se agrega tambi?n el estado y municipio
+
+subdata_coneval <- inegi_y_coneval[which(colnames(inegi_y_coneval)=="pobreza_pob"): 
+                                     which( colnames(inegi_y_coneval)=="plbm_pob")]
+
+subdata_coneval <- sapply(subdata_coneval, as.numeric)
+
+# se calculan las tasas
+for (i in 1:dim(subdata_coneval)[1]){
+  subdata_coneval[i,] <-  as.numeric(as.vector(subdata_coneval[i,]))/as.numeric(inegi_y_coneval["poblacion"][i,])
+}
+rm(i) # Salen warnings por los NA's de los estados que no tienen info para el coneval
+
+
+# Se agrega la poblaci?n total, el estado y municipio a las dos subdatas
+subdata_coneval <- cbind(inegi_y_coneval[which(colnames(inegi_y_coneval)=="poblacion")],subdata_coneval)
+subdata_coneval <- cbind(inegi_y_coneval[which(colnames(inegi_y_coneval)=="municipio")],subdata_coneval)
+subdata_coneval <- cbind(inegi_y_coneval[which(colnames(inegi_y_coneval)=="estado")],subdata_coneval)
+
+
+subdata_inegi <- cbind(inegi_y_coneval[which(colnames(inegi_y_coneval)=="municipio")],subdata_inegi)
+subdata_inegi <- cbind(inegi_y_coneval[which(colnames(inegi_y_coneval)=="estado")],subdata_inegi)
+
+save.image("Codigo Tesis Parte 2- Calculo de tasas.RData")
