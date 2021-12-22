@@ -1,0 +1,741 @@
+load('~/Codigo Tesis Parte 2- Calculo de tasas.RData')
+
+# * * * * * * * * * * * * * * *  PASO 3 * * * * * * * * * * * * * * * * * * * * 
+# * * * * * * * * Imputar los datos faltantes * * * * * * * * * * * * * * *
+# * * * * * * * * * * * * * * *  * * *  * * * * * * * * * * * * * * * * * * * * 
+
+# Se ve si hay datos faltantes
+which(apply(subdata_inegi, 2, function(x) any(is.na(x)))==TRUE) #El TAMLOC
+# se refiere al tamaño de la locacion y esta variable no se utilizara
+
+which(apply(subdata_coneval, 2, function(x) any(is.na(x)))==TRUE)
+# Existen datos faltantes para todas las columnas en los datos del coneval
+
+# Estos son:
+faltantes <- which((rowSums(is.na(subdata_coneval)) > 0) == TRUE) #162 en total
+faltantes
+length(faltantes)
+
+# Se van a modificar las variables del coneval, es decir, desde pobreza_pob
+# hasta plbm_pob 
+i <- which(names(subdata_coneval)=="pobreza_pob")
+j <- which(names(subdata_coneval)=="plbm_pob")
+
+
+
+# Son 12 los municipios que surgieron entre 2015 y 2020 por lo que
+# aparecen en la base de datos del inegi pero no del coneval 
+
+# * * * * * * * * * * * * * * * * * * * * * * San Quintín - Baja California
+# Proviene de: (1)
+# Municipio: Ensenada
+# Estado: Baja California
+
+subdata_coneval[which(subdata_coneval['estado'] == 'Baja California' & 
+                        subdata_coneval['municipio'] == 'San Quintín'),i:j] <- subdata_coneval[
+                          which(subdata_coneval['estado'] == 'Baja California' & 
+                                  subdata_coneval['municipio'] == 'Ensenada'), i:j]
+
+# * * * * * * * * * * * * * * * * * * * * * * Seybaplaya - Campeche
+# Proviene de: (2)
+# Municipio: Champotón
+# Estado: Campeche
+
+imputar <- subdata_coneval[which(subdata_coneval['estado'] == 'Campeche' & 
+                                   subdata_coneval['municipio'] == 'Champotón'),i:j]
+
+# Municipio: Campeche
+# Estado: Campeche
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Campeche' & 
+                                                  subdata_coneval['municipio'] == 'Campeche'),i:j])
+
+
+imputar <- sapply(imputar, as.numeric)
+imputar <- as.data.frame(t(apply((imputar),MARGIN=2,FUN=mean)))
+
+
+subdata_coneval[which(subdata_coneval['estado'] == 'Campeche' & 
+                        subdata_coneval['municipio'] == 'Seybaplaya'),i:j] <- imputar
+
+rm(imputar)
+
+
+# * * * * * * * * * * * * * * * * Capitán Luis Ángel Vidal - Chiapas
+# Proviene de: (1) 
+# Municipio: Siltepec
+# Estado: Chiapas
+
+subdata_coneval[which(subdata_coneval['estado'] == 'Chiapas' & 
+                        subdata_coneval['municipio'] == 'Capitán Luis Ángel Vidal'), i:j] <- subdata_coneval[
+                          which(subdata_coneval['estado'] == 'Chiapas' & 
+                                  subdata_coneval['municipio'] == 'Siltepec'),i:j]
+
+
+# * * * * * * * * * * * * * * * * Rincón Chamula San Pedro - Chiapas
+# Proviene de: (4) 
+
+# Municipio: Jitotol
+# Estado: Chiapas
+
+imputar <- subdata_coneval[which(subdata_coneval['estado'] == 'Chiapas' & 
+                                   subdata_coneval['municipio'] == 'Jitotol'),i:j]
+
+# Municipio: Rayón
+# Estado: Chiapas
+
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Chiapas' & 
+                                                  subdata_coneval['municipio'] == 'Rayón'),i:j])
+
+# Municipio: Tapilula
+# Estado: Chiapas
+
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Chiapas' & 
+                                                  subdata_coneval['municipio'] == 'Tapilula'),i:j])
+
+
+# Municipio: Pueblo Nuevo Solistahuacán
+# Estado: Chiapas
+
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Chiapas' & 
+                                                  subdata_coneval['municipio'] == 'Pueblo Nuevo Solistahuacán'),i:j])
+
+imputar <- sapply(imputar, as.numeric)
+imputar <- as.data.frame(t(apply((imputar),MARGIN=2,FUN=mean)))
+
+
+subdata_coneval[which(subdata_coneval['estado'] == 'Chiapas' & 
+                        subdata_coneval['municipio'] == 'Rincón Chamula San Pedro'),i:j] <- imputar
+
+rm(imputar)
+
+# * * * * * * * * * * * * * * * * * * * El Parral - Chiapas
+# Proviene de: (2)
+
+# Municipio: Villaflores
+# Estado: Chiapas
+
+imputar <- subdata_coneval[which(subdata_coneval['estado'] == 'Chiapas' & 
+                                   subdata_coneval['municipio'] == 'Villaflores'),i:j]
+
+# Municipio: Villa Corzo
+# Estado: Chiapas
+
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Chiapas' & 
+                                                  subdata_coneval['municipio'] == 'Villa Corzo'),i:j])
+
+
+imputar <- sapply(imputar, as.numeric)
+imputar <- as.data.frame(t(apply((imputar),MARGIN=2,FUN=mean)))
+
+
+subdata_coneval[which(subdata_coneval['estado'] == 'Chiapas' & 
+                        subdata_coneval['municipio'] == 'El Parral'),i:j] <- imputar
+
+rm(imputar)
+
+# * * * * * * * * * * * * * * * * * * * Emiliano Zapata - Chiapas
+# Proviene de: (3)
+
+# Municipio: Venustiano Carranza
+# Estado: Chiapas
+
+imputar <- subdata_coneval[which(subdata_coneval['estado'] == 'Chiapas' & 
+                                   subdata_coneval['municipio'] == 'Venustiano Carranza'),i:j]
+
+# Municipio: Chiapa de Corzo
+# Estado: Chiapas
+
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Chiapas' & 
+                                                  subdata_coneval['municipio'] == 'Chiapa de Corzo'),i:j])
+
+# Municipio: Acala
+# Estado: Chiapas
+
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Chiapas' & 
+                                                  subdata_coneval['municipio'] == 'Acala'),i:j])
+
+imputar <- sapply(imputar, as.numeric)
+imputar <- as.data.frame(t(apply((imputar),MARGIN=2,FUN=mean)))
+
+
+subdata_coneval[which(subdata_coneval['estado'] == 'Chiapas' & 
+                        subdata_coneval['municipio'] == 'Emiliano Zapata'),i:j] <- imputar
+
+rm(imputar)
+
+# * * * * * * * * * * * * * * * * * * * Mezcalapa - Chiapas
+# Proviene de: (3)
+
+# Municipio: Ocozocoautla de Espinosa
+# Estado: Chiapas
+
+imputar <- subdata_coneval[which(subdata_coneval['estado'] == 'Chiapas' & 
+                                   subdata_coneval['municipio'] == 'Ocozocoautla de Espinosa'),i:j]
+
+
+# Municipio: Tecpatán
+# Estado: Chiapas
+
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Chiapas' & 
+                                                  subdata_coneval['municipio'] == 'Tecpatán'),i:j])
+
+# Municipio: Ostuacán
+# Estado: Chiapas
+
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Chiapas' & 
+                                                  subdata_coneval['municipio'] == 'Ostuacán'),i:j])
+
+imputar <- sapply(imputar, as.numeric)
+imputar <- as.data.frame(t(apply((imputar),MARGIN=2,FUN=mean)))
+
+
+subdata_coneval[which(subdata_coneval['estado'] == 'Chiapas' & 
+                        subdata_coneval['municipio'] == 'Mezcalapa'),i:j] <- imputar
+
+rm(imputar)
+
+
+# * * * * * * * * * * * * * * * * Honduras de la Sierra - Chiapas
+# Proviene de: (1)
+
+# Municipio: Siltepec
+# Estado: Chiapas
+
+subdata_coneval[which(subdata_coneval['estado'] == 'Chiapas' & 
+                        subdata_coneval['municipio'] == 'Honduras de la Sierra'), i:j] <- subdata_coneval[
+                          which(subdata_coneval['estado'] == 'Chiapas' & 
+                                  subdata_coneval['municipio'] == 'Siltepec'),i:j]
+
+
+# * * * * * * * * * * * * * * * * * * Coatetelco - Morelos
+# Proviene de: (1)
+
+# Municipio: Miacatlán
+# Estado: Morelos
+
+subdata_coneval[which(subdata_coneval['estado'] == 'Morelos' & 
+                        subdata_coneval['municipio'] == 'Coatetelco'),i:j] <- subdata_coneval[
+                          which(subdata_coneval['estado'] == 'Morelos' & 
+                                  subdata_coneval['municipio'] == 'Miacatlán'),i:j]
+
+# * * * * * * * * * * * * * * * * * * Xoxocotla - Morelos
+# Proviene de: (1)
+
+# Municipio: Puente de Ixtla
+# Estado: Morelos
+
+subdata_coneval[which(subdata_coneval['estado'] == 'Morelos' & 
+                        subdata_coneval['municipio'] == 'Xoxocotla'),i:j] <- subdata_coneval[
+                          which(subdata_coneval['estado'] == 'Morelos' & 
+                                  subdata_coneval['municipio'] == 'Puente de Ixtla'),i:j]
+
+
+# * * * * * * * * * * * * * * * * * * Hueyapan - Morelos
+# Proviene de: (1)
+
+# Municipio: Tetela del Volcán
+# Estado: Morelos
+
+subdata_coneval[which(subdata_coneval['estado'] == 'Morelos' & 
+                        subdata_coneval['municipio'] == 'Hueyapan'),i:j] <- subdata_coneval[
+                          which(subdata_coneval['estado'] == 'Morelos' & 
+                                  subdata_coneval['municipio'] == 'Tetela del Volcán'),i:j
+                        ]
+
+# * * * * * * * * * * * * * * * * * * Puerto Morelos - Quintana Roo
+# Proviene de: (1)
+
+# Municipio: Benito Juárez
+# Estado: Quintana Roo
+
+subdata_coneval[which(subdata_coneval['estado'] == 'Quintana Roo' & 
+                        subdata_coneval['municipio'] == 'Puerto Morelos'), i:j] <- subdata_coneval[
+                          which(subdata_coneval['estado'] == 'Quintana Roo' & 
+                                  subdata_coneval['municipio'] == 'Benito Juárez'),i:j]
+
+rm(i);rm(j)
+
+
+# * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+# * * * * * * * otros municipios que no tienen datos en el coneval * * * * * * * 
+# * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+faltantes <- which(is.na(subdata_coneval$vul_car_pob)==TRUE)
+length(faltantes) 
+
+subdata_coneval[faltantes,c("estado","municipio")]
+i <- which(names(subdata_coneval)=="pobreza_pob")
+j <- which(names(subdata_coneval)=="plbm_pob")
+
+subdata_coneval[faltantes,c("estado","municipio")]
+
+
+# * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * Buenaventura - Chihuahua
+# Vecinos: (7) LISTO ***
+#   Ascensión - Chihuahua
+#   Nuevo Casas Grandes - Chihuahua
+#   Galeana - Chihuahua
+#   Ignacio Zaragoza - Chihuahua
+#   Namiquipa - Chihuahua
+#   Chihuahua - Chihuahua
+#   Ahumada - Chihuahua
+
+
+#   Ascensión - Chihuahua
+imputar <- subdata_coneval[which(subdata_coneval['estado'] == 'Chihuahua' & 
+                                   subdata_coneval['municipio'] == 'Ascensión'),i:j]
+#   Nuevo Casas Grandes - Chihuahua
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Chihuahua' & 
+                                                  subdata_coneval['municipio'] == 'Nuevo Casas Grandes'),i:j])
+#   Galeana - Chihuahua
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Chihuahua' & 
+                                                  subdata_coneval['municipio'] == 'Galeana'),i:j])
+#   Ignacio Zaragoza - Chihuahua
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Chihuahua' & 
+                                                  subdata_coneval['municipio'] == 'Ignacio Zaragoza'),i:j])
+#   Namiquipa - Chihuahua
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Chihuahua' & 
+                                                  subdata_coneval['municipio'] == 'Namiquipa'),i:j])
+#   Chihuahua - Chihuahua
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Chihuahua' & 
+                                                  subdata_coneval['municipio'] == 'Chihuahua'),i:j])
+#   Ahumada - Chihuahua
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Chihuahua' & 
+                                                  subdata_coneval['municipio'] == 'Ahumada'),i:j])
+
+imputar <- sapply(imputar, as.numeric)
+imputar <- as.data.frame(t(apply((imputar),MARGIN=2,FUN=mean)))
+
+
+subdata_coneval[which(subdata_coneval['estado'] == 'Chihuahua' & 
+                        subdata_coneval['municipio'] == 'Buenaventura'),i:j] <- imputar
+
+rm(imputar)
+
+# * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * Carichí - Chihuahua
+# Vecinos: (6) LISTO ***
+#   Guerrero - Chihuahua
+#   Bocoyna - Chihuahua
+#   Guachochi - Chihuahua
+#   Nonoava - Chihuahua
+#   San Francisco de Borja - Chihuahua
+#   Cusihuiriachi - Chihuahua
+
+#   Guerrero - Chihuahua
+imputar <- subdata_coneval[which(subdata_coneval['estado'] == 'Chihuahua' & 
+                                   subdata_coneval['municipio'] == 'Guerrero'),i:j]
+#   Bocoyna - Chihuahua
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Chihuahua' & 
+                                                  subdata_coneval['municipio'] == 'Bocoyna'),i:j])
+#   Guachochi - Chihuahua
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Chihuahua' & 
+                                                  subdata_coneval['municipio'] == 'Guachochi'),i:j])
+#   Nonoava - Chihuahua
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Chihuahua' & 
+                                                  subdata_coneval['municipio'] == 'Nonoava'),i:j])
+#   San Francisco de Borja - Chihuahua
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Chihuahua' & 
+                                                  subdata_coneval['municipio'] == 'San Francisco de Borja'),i:j])
+#   Cusihuiriachi - Chihuahua
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Chihuahua' & 
+                                                  subdata_coneval['municipio'] == 'Cusihuiriachi'),i:j])
+
+imputar <- sapply(imputar, as.numeric)
+imputar <- as.data.frame(t(apply((imputar),MARGIN=2,FUN=mean)))
+
+subdata_coneval[which(subdata_coneval['estado'] == 'Chihuahua' & 
+                        subdata_coneval['municipio'] == 'Carichí'),i:j] <- imputar
+
+rm(imputar)
+# * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * Santa Isabel - Chihuahua
+# Vecinos: (6) LISTO ***
+#   Chihuahua - Chihuahua
+#   Riva Palacio - Chihuahua
+#   Cuauhtémoc - Chihuahua
+#   Gran Morelos - Chihuahua
+#   Dr. Belisario Domínguez - Chihuahua
+#   Satevó - chihuahua
+
+
+#   Chihuahua - Chihuahua
+imputar <- subdata_coneval[which(subdata_coneval['estado'] == 'Chihuahua' & 
+                                   subdata_coneval['municipio'] == 'Chihuahua'),i:j]
+#   Riva Palacio - Chihuahua
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Chihuahua' & 
+                                                  subdata_coneval['municipio'] == 'Riva Palacio'),i:j])
+#   Cuauhtémoc - Chihuahua
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Chihuahua' & 
+                                                  subdata_coneval['municipio'] == 'Cuauhtémoc'),i:j])
+#   Gran Morelos - Chihuahua
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Chihuahua' & 
+                                                  subdata_coneval['municipio'] == 'Gran Morelos'),i:j])
+#   Dr. Belisario Domínguez - Chihuahua
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Chihuahua' & 
+                                                  subdata_coneval['municipio'] == 'Dr. Belisario Domínguez'),i:j])
+#   Satevó - chihuahua
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Chihuahua' & 
+                                                  subdata_coneval['municipio'] == 'Satevó'),i:j])
+
+imputar <- sapply(imputar, as.numeric)
+imputar <- as.data.frame(t(apply((imputar),MARGIN=2,FUN=mean)))
+
+subdata_coneval[which(subdata_coneval['estado'] == 'Chihuahua' & 
+                        subdata_coneval['municipio'] == 'Santa Isabel'),i:j] <- imputar
+
+rm(imputar)
+
+
+# * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * Temósachic - Chihuahua
+# Vecinos: (9) LISTO ***
+#   Madera - Chihuahua
+#   Moris - Chihuahua
+#   Ocampo - Chihuahua
+#   Guerrero - Chihuahua
+#   Matachí - Chihuahua
+#   Namiquipa - Chihuahua
+#   Gómez Farías - Chihuahua
+#   Sahuaripa - Sonora - 052
+#   Yécora - Sonora - 069
+
+#   Madera - Chihuahua 1
+imputar <- subdata_coneval[which(subdata_coneval['estado'] == 'Chihuahua' & 
+                                   subdata_coneval['municipio'] == 'Madera'),i:j]
+#   Moris - Chihuahua 2
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Chihuahua' & 
+                                                  subdata_coneval['municipio'] == 'Moris'),i:j])
+#   Ocampo - Chihuahua 3
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Chihuahua' & 
+                                                  subdata_coneval['municipio'] == 'Ocampo'),i:j])
+#   Guerrero - Chihuahua 4
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Chihuahua' & 
+                                                  subdata_coneval['municipio'] == 'Guerrero'),i:j])
+#   Matachí - Chihuahua 5
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Chihuahua' & 
+                                                  subdata_coneval['municipio'] == 'Matachí'),i:j])
+#   Namiquipa - Chihuahua 6
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Chihuahua' & 
+                                                  subdata_coneval['municipio'] == 'Namiquipa'),i:j])
+#   Gómez Farías - Chihuahua 7
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Chihuahua' & 
+                                                  subdata_coneval['municipio'] == 'Gómez Farías'),i:j])
+#   Sahuaripa - Sonora 8
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Sonora' & 
+                                                  subdata_coneval['municipio'] == 'Sahuaripa'),i:j])
+#   Yécora - Sonora 9
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Sonora' & 
+                                                  subdata_coneval['municipio'] == 'Yécora'),i:j])
+
+imputar <- sapply(imputar, as.numeric)
+imputar <- as.data.frame(t(apply((imputar),MARGIN=2,FUN=mean)))
+
+subdata_coneval[which(subdata_coneval['estado'] == 'Chihuahua' & 
+                        subdata_coneval['municipio'] == 'Temósachic'),i:j] <- imputar
+
+rm(imputar)
+
+# * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * Urique - Chihuahua
+# Vecinos:(6) LISTO ***
+#   Guazapares - Chihuahua
+#   Batopilas de Manuel Gómez Morín - Chihuahua
+#   Guachochi - Chihuahua
+#   Bocoyna - Chihuahua
+#   Maguarichi - Chihuahua
+#   Choix - Sinaloa
+
+
+#   Guazapares - Chihuahua
+imputar <- subdata_coneval[which(subdata_coneval['estado'] == 'Chihuahua' & 
+                                   subdata_coneval['municipio'] == 'Guazapares'),i:j]
+#   Batopilas de Manuel Gómez Morín - Chihuahua
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Chihuahua' & 
+                                                  subdata_coneval['municipio'] == 'Batopilas de Manuel Gómez Morín'),i:j])
+#   Guachochi - Chihuahua
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Chihuahua' & 
+                                                  subdata_coneval['municipio'] == 'Guachochi'),i:j])
+#   Bocoyna - Chihuahua
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Chihuahua' & 
+                                                  subdata_coneval['municipio'] == 'Bocoyna'),i:j])
+#   Maguarichi - Chihuahua
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Chihuahua' & 
+                                                  subdata_coneval['municipio'] == 'Maguarichi'),i:j])
+#   Choix - Sinaloa
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Sinaloa' & 
+                                                  subdata_coneval['municipio'] == 'Choix'),i:j])
+
+imputar <- sapply(imputar, as.numeric)
+imputar <- as.data.frame(t(apply((imputar),MARGIN=2,FUN=mean)))
+
+subdata_coneval[which(subdata_coneval['estado'] == 'Chihuahua' & 
+                        subdata_coneval['municipio'] == 'Urique'),i:j] <- imputar
+
+rm(imputar)
+
+# * * * * * * * * * * * * * * * * * * * * * *  Matías Romero Avendaño - Oaxaca
+# Vecinos:(7) LISTO*** , en realidad 5 porque 427 no tiene info, ni el 407 *
+#   091 - Veracruz - Jesús Carranza
+#   190 - Oaxaca - San Juan Cotzocón
+#   207 - Oaxaca - 	San Juan Mazatlán
+#   198 - Oaxaca - 	San Juan Guichicovi
+#   427 - Oaxaca - Santa María Petapa *
+#   010 - Oaxaca - El Barrio de la Soledad
+#   407 - Oaxaca - Santa María Chimalapa *
+
+
+#   091 - Veracruz - Jesús Carranza 1
+imputar <- subdata_coneval[which(subdata_coneval['estado'] == 'Veracruz' & 
+                                   subdata_coneval['municipio'] == 'Jesús Carranza'),i:j]
+#   190 - Oaxaca - San Juan Cotzocón 2
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Oaxaca' & 
+                                                  subdata_coneval['municipio'] == 'San Juan Cotzocón'),i:j])
+#   207 - Oaxaca - 	San Juan Mazatlán 3
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Oaxaca' & 
+                                                  subdata_coneval['municipio'] == 'San Juan Mazatlán'),i:j])
+#   198 - Oaxaca - 	San Juan Guichicovi 4 
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Oaxaca' & 
+                                                  subdata_coneval['municipio'] == 'San Juan Guichicovi'),i:j])
+
+#   427 - Oaxaca - Santa María Petapa  (no tiene datos para imputar así que se descarta)
+#imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Oaxaca' & 
+#                                             subdata_coneval['municipio'] == 'Santa María Petapa'),i:j])
+
+#   010 - Oaxaca - El Barrio de la Soledad 5
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Oaxaca' & 
+                                                  subdata_coneval['municipio'] == 'El Barrio de la Soledad'),i:j])
+
+#   407 - Oaxaca - Santa María Chimalapa, tampoco tiene datos
+#imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Oaxaca' & 
+#                                            subdata_coneval['municipio'] == 'Santa María Chimalapa'),i:j])
+
+
+imputar <- sapply(imputar, as.numeric)
+imputar <- as.data.frame(t(apply((imputar),MARGIN=2,FUN=mean)))
+
+subdata_coneval[which(subdata_coneval['estado'] == 'Oaxaca' & 
+                        subdata_coneval['municipio'] == 'Matías Romero Avendaño'),i:j] <- imputar
+
+rm(imputar) 
+
+# * * * * * * * * * * * * * * * * * * * * * *  San Francisco Chindúa - Oaxaca
+# Vecinos: (7) LISTO ***
+#   332 - Oaxaca - 	San Pedro Topiltepec
+#   479 - Oaxaca - 	Santiago Nejapilla
+#   518 - Oaxaca - Santo Domingo Tlatayápam	
+#   147 - Oaxaca - San Francisco Nuxaño
+#   281 - Oaxaca - 	San Miguel Tecomatlán
+#   250 - Oaxaca - San Mateo Etlatongo
+#   215 - Oaxaca - San Juan Sayultepec
+
+
+#   332 - Oaxaca - 	San Pedro Topiltepec 1
+imputar <- subdata_coneval[which(subdata_coneval['estado'] == 'Oaxaca' & 
+                                   subdata_coneval['municipio'] == 'San Pedro Topiltepec'),i:j]
+#   479 - Oaxaca - 	Santiago Nejapilla 2
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Oaxaca' & 
+                                                  subdata_coneval['municipio'] == 'Santiago Nejapilla'),i:j])
+#   518 - Oaxaca - Santo Domingo Tlatayápam	 3
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Oaxaca' & 
+                                                  subdata_coneval['municipio'] == 'Santo Domingo Tlatayápam'),i:j])
+#   147 - Oaxaca - San Francisco Nuxaño 4
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Oaxaca' & 
+                                                  subdata_coneval['municipio'] == 'San Francisco Nuxaño'),i:j])
+#   281 - Oaxaca - 	San Miguel Tecomatlán 5
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Oaxaca' & 
+                                                  subdata_coneval['municipio'] == 'San Miguel Tecomatlán'),i:j])
+#   250 - Oaxaca - San Mateo Etlatongo 6
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Oaxaca' & 
+                                                  subdata_coneval['municipio'] == 'San Mateo Etlatongo'),i:j])
+#   215 - Oaxaca - San Juan Sayultepec 7
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Oaxaca' & 
+                                                  subdata_coneval['municipio'] == 'San Juan Sayultepec'),i:j])
+
+imputar <- sapply(imputar, as.numeric)
+imputar <- as.data.frame(t(apply((imputar),MARGIN=2,FUN=mean)))
+
+subdata_coneval[which(subdata_coneval['estado'] == 'Oaxaca' & 
+                        subdata_coneval['municipio'] == 'San Francisco Chindúa'),i:j] <- imputar
+
+rm(imputar) 
+# * * * * * * * * * * * * * * * * * * * * * *  Santa María Chimalapa - Oaxaca
+# Vecinos: (8) LISTO *
+#   057 - Oaxaca - 	Matías Romero Avendaño
+#   010 - Oaxaca - 	El Barrio de la Soledad
+#   005 - Oaxaca - 	Asunción Ixtaltepec
+#   265 - Oaxaca - 	San Miguel Chimalapa
+#   017 - Chiapas - Cintalapa
+#   061 - Veracruz - 	Las Choapas
+#   210 - Veracruz - Uxpanapa 
+#   091 - Veracruz - Jesús Carranza
+
+
+#   057 - Oaxaca - 	Matías Romero Avendaño 1
+imputar <- subdata_coneval[which(subdata_coneval['estado'] == 'Oaxaca' & 
+                                   subdata_coneval['municipio'] == 'Matías Romero Avendaño'),i:j]
+#   010 - Oaxaca - 	El Barrio de la Soledad 2
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Oaxaca' & 
+                                                  subdata_coneval['municipio'] == 'El Barrio de la Soledad'),i:j])
+#   005 - Oaxaca - 	Asunción Ixtaltepec 3
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Oaxaca' & 
+                                                  subdata_coneval['municipio'] == 'Asunción Ixtaltepec'),i:j])
+#   265 - Oaxaca - 	San Miguel Chimalapa 4
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Oaxaca' & 
+                                                  subdata_coneval['municipio'] == 'San Miguel Chimalapa'),i:j])
+#   017 - Chiapas - Cintalapa 5
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Chiapas' & 
+                                                  subdata_coneval['municipio'] == 'Cintalapa'),i:j])
+#   061 - Veracruz - 	Las Choapas 6
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Veracruz' & 
+                                                  subdata_coneval['municipio'] == 'Las Choapas'),i:j])
+#   210 - Veracruz - Uxpanapa 7
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Veracruz' & 
+                                                  subdata_coneval['municipio'] == 'Uxpanapa'),i:j])
+#   091 - Veracruz - Jesús Carranza 8
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Veracruz' & 
+                                                  subdata_coneval['municipio'] == 'Jesús Carranza'),i:j])
+
+imputar <- sapply(imputar, as.numeric)
+imputar <- as.data.frame(t(apply((imputar),MARGIN=2,FUN=mean)))
+
+subdata_coneval[which(subdata_coneval['estado'] == 'Oaxaca' & 
+                        subdata_coneval['municipio'] == 'Santa María Chimalapa'),i:j] <- imputar
+
+rm(imputar) 
+# * * * * * * * * * * * * * * * * * * * * * *  Santa María Petapa - Oaxaca
+# Vecinos: (4) LISTO *
+#   057 - Oaxaca - 	Matías Romero Avendaño
+#   198 - Oaxaca - 	San Juan Guichicovi
+#   513 - Oaxaca - 	Santo Domingo Petapa
+#   010 - Oaxaca - 	El Barrio de la Soledad
+
+
+#   057 - Oaxaca - 	Matías Romero Avendaño 1
+imputar <- subdata_coneval[which(subdata_coneval['estado'] == 'Oaxaca' & 
+                                   subdata_coneval['municipio'] == 'Matías Romero Avendaño'),i:j]
+#   010 - Oaxaca - 		San Juan Guichicovi 2
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Oaxaca' & 
+                                                  subdata_coneval['municipio'] == 'San Juan Guichicovi'),i:j])
+#   513 - Oaxaca - 	Santo Domingo Petapa 3
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Oaxaca' & 
+                                                  subdata_coneval['municipio'] == 'Santo Domingo Petapa'),i:j])
+#   010 - Oaxaca - 	El Barrio de la Soledad 4
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Oaxaca' & 
+                                                  subdata_coneval['municipio'] == 'El Barrio de la Soledad'),i:j])
+
+imputar <- sapply(imputar, as.numeric)
+imputar <- as.data.frame(t(apply((imputar),MARGIN=2,FUN=mean)))
+
+subdata_coneval[which(subdata_coneval['estado'] == 'Oaxaca' & 
+                        subdata_coneval['municipio'] == 'Santa María Petapa'),i:j] <- imputar
+rm(imputar) 
+
+# * * * * * * * * * * * * * * * * * * * * * *  San Nicolás de los Ranchos - Puebla 
+# Vecinos: (7) LISTO ***
+#   009 - Estado de México - Amecameca
+#   015 - Estado de México - Atlautla
+#   188 - Puebla - Tochimilco
+#   175 - Puebla - Tianguismanalco
+#   102 - Puebla - Nealtican
+#   026 - Puebla - Calpan
+#   074 - Puebla - Huejotzingo
+
+#   009 - Estado de México - Amecameca 1
+imputar <- subdata_coneval[which(subdata_coneval['estado'] == 'México' & 
+                                   subdata_coneval['municipio'] == 'Amecameca'),i:j]
+#   015 - Estado de México - Atlautla 2
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'México' & 
+                                                  subdata_coneval['municipio'] == 'Atlautla'),i:j])
+#   188 - Puebla - Tochimilco 3
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Puebla' & 
+                                                  subdata_coneval['municipio'] == 'Tochimilco'),i:j])
+#   175 - Puebla - Tianguismanalco 4
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Puebla' & 
+                                                  subdata_coneval['municipio'] == 'Tianguismanalco'),i:j])
+#   102 - Puebla - Nealtican 5
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Puebla' & 
+                                                  subdata_coneval['municipio'] == 'Nealtican'),i:j])
+#   026 - Puebla - Calpan 6
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Puebla' & 
+                                                  subdata_coneval['municipio'] == 'Calpan'),i:j])
+#   074 - Puebla - Huejotzingo 7
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Puebla' & 
+                                                  subdata_coneval['municipio'] == 'Huejotzingo'),i:j])
+
+imputar <- sapply(imputar, as.numeric)
+imputar <- as.data.frame(t(apply((imputar),MARGIN=2,FUN=mean)))
+
+subdata_coneval[which(subdata_coneval['estado'] == 'Puebla' & 
+                        subdata_coneval['municipio'] == 'San Nicolás de los Ranchos'),i:j] <- imputar
+rm(imputar) 
+
+
+# * * * * * * * * * * * * * * * * * * * * * *  General Plutarco Elías Calles - Sonora
+# Vecinos: (2) LISTO ***
+#   048 - Sonora - Puerto Peñasco
+#   017 - Sonora - Caborca
+
+#   048 - Sonora - Puerto Peñasco
+imputar <- subdata_coneval[which(subdata_coneval['estado'] == 'Sonora' & 
+                                   subdata_coneval['municipio'] == 'Puerto Peñasco'),i:j]
+#   017 - Sonora - Caborca
+imputar <- rbind(imputar, subdata_coneval[which(subdata_coneval['estado'] == 'Sonora' & 
+                                                  subdata_coneval['municipio'] == 'Caborca'),i:j])
+
+imputar <- sapply(imputar, as.numeric)
+imputar <- as.data.frame(t(apply((imputar),MARGIN=2,FUN=mean)))
+
+subdata_coneval[which(subdata_coneval['estado'] == 'Sonora' & 
+                        subdata_coneval['municipio'] == 'General Plutarco Elías Calles'),i:j] <- imputar
+rm(imputar) 
+
+rm(i);rm(j)
+
+
+
+# ---- Comprobación de que ya no hay municipios faltantes de datos:
+faltantes <- which(is.na(subdata_coneval$vul_ing_pob)==TRUE)
+length(faltantes)
+rm(faltantes)
+
+
+str(subdata_coneval) #Las variables son correctas 
+
+# * * * * * * * * * * * * * * *  PASO 3.2 * * * * * * * * * * * * * * * * * *
+# * * * * * * * * * * * Juntar todos los datos * * * * * * * * * * * * * * *
+# * * * * * * * * * * * * * * *  * * *  * * * * * * * * * * * * * * * * * * * 
+library("readxl")
+
+variables_inegi <- read_excel("Comparacion entre variables.xlsx")
+
+
+# Pueden existir variables que no se dividan entre otra,
+# ya que son totales o por si mismas un promedio
+tasas_listas <- variables_inegi[which(variables_inegi[,"Dividir entre"]=="no se divide"),]
+tasas_calculadas <- variables_inegi[which(variables_inegi[,"Dividir entre"]!="no se divide"),]
+
+
+# Se comprueban las dimensiones, 223 es el total de variables en la encuesta
+# del inegi
+dim(tasas_listas)[1] + dim(tasas_calculadas)[1] == 223
+
+tasas_listas <- as.vector(tasas_listas$Variables)
+tasas_calculadas <- as.vector(tasas_calculadas$Variables)
+
+# Como tasas_listas no se deben de dividir entre nada, se pueden tomar
+# directamente de subdata_inegi
+subdata_inegi <- subdata_inegi[,intersect(tasas_listas, names(subdata_inegi))]
+
+# Luego se agregan, de tasas_calculadas, el resto de las variables
+subdata_inegi <- cbind(subdata_inegi,
+                       tasas_inegi[,intersect(tasas_calculadas, names(tasas_inegi))])
+
+# Se comprueba qe las dimensiones sean correctas
+dim(subdata_inegi)[2] == 223
+rm(tasas_calculadas); rm(tasas_listas)
+
+# Ahora se deben de juntar los datos de las tasas en una sola base de nuevo
+data_tasas <- cbind(subdata_coneval, subdata_inegi)
+
+# 19 variables del coneval + #223 variables del inegi = 242
+# y 2469 renglones 
+dim(data_tasas) 
+
+save.image("Codigo Tesis Parte 3- Imputacion de los datos faltantes.RData")
