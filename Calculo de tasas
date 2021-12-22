@@ -1,4 +1,4 @@
-load('~/Matematicas Aplicadas/Tesis/Data R/Codigo Tesis Parte 1- Integracion y Limpieza de datos.RData')
+load('~/Codigo Tesis Parte 1- Integracion y Limpieza de datos.RData')
 
 # * * * * * * * * * * * * * * *  PASO 2 * * * * * * * * * * * * * * * * * * * * 
 # * * * * * * * * Transformar las variables en tasas  * * * * * * * * * * * * *
