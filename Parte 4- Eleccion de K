@@ -73,7 +73,7 @@ rm(extras)
 datos <- D0
 
 gap <- fviz_nbclust(x = datos, FUNcluster = hcut,
-                    method = "gap", k.max = 10, dis="manhattan") +
+                    method = "gap", k.max = 10) +
   labs(title = "Número óptimo de clusters")
 # Son 5 clusters los que se uilizan 
 
