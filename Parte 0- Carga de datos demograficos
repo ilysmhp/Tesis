@@ -1,0 +1,63 @@
+# * * * * * * * * * * * * * * *  PASO  * * * * * * * * * * * * * * * * * * * 
+# * * * * * * Se cargan los poligonos de los municipios * * * * * * * * * * 
+# * * * * * * * * * * * * * * *  * * *  * * * * * * * * * * * * * * * * * * * * 
+setwd <- 'C:/Users/Coffe/Documents/Matematicas Aplicadas/Tesis'
+# install.packages("rgdal", repos="http://R-Forge.R-project.org")
+library(readr);library(magrittr);library(dplyr);library(tidyr)
+library(purrr);library(tibble);library(ggplot2)
+library(lubridate);library(leaflet);library(rgdal);library(sf)
+
+# Directorio donde se encuentran los poligonos de los municipios
+setwd(paste(setwd,'/Datos INEGI integrados/conjunto_de_datos', sep=""))
+
+# Poligonos de todos los municipios del pasis
+datos_espaciales <- readOGR("00mun.shp",
+                            verbose = FALSE)
+
+dim(datos_espaciales@data) # son 2469 municipios lo cual coincide con los
+# datos en data_tasas
+
+# Se transformar los datos al formato WGS84
+datos_espaciales %<>% spTransform(CRS("+proj=longlat +datum=WGS84"))
+
+
+# Se grafica el mapa de la republica dividido por municipios
+# plot(datos_espaciales, main = "Mapa de la república mexicana", sub = "por municipios",
+#      xlab = "Longitud", ylab = "Latitud")
+
+
+# * * * * * * * * * * * * * * *  PASO * * * * * * * * * * * * * * * * * * * 
+# * * Se obtienen las matrices necesarias para correr el algoritmo  * * * * 
+# * * * * * * * * * * * * * * *  * * *  * * * * * * * * * * * * * * * * * * * * 
+
+# Se calculan las matrices D0 y D1 por distancias y por vecinos
+
+# Ubicando los centroides y calculando las distancias
+# Se convierte a un objeto espacial 
+datos_espaciales.sf <- sf::st_as_sf(datos_espaciales)
+
+#Calcula los centroides
+Centroids <- st_centroid(datos_espaciales.sf)
+# plot(Centroids)
+# plot(datos_espaciales.sf)
+
+# Calcula la distancia hacia los crentroides
+D1.geo <- st_distance(Centroids) # Matriz de distancias D1
+
+
+# La función construye una lista de vecinos basandose en las regiones
+# con limites contiguos, esto es que compartan al menos un punto limite
+list.nb <- spdep::poly2nb(datos_espaciales)
+
+# Se contrsuye la matriz de adyacencias
+A <- spdep::nb2mat(list.nb, style="B")
+#Se pone unos en la diagonal
+diag(A) <- 1
+
+D1.dis <- 1-A # esto se hace porque se esta calculando la matriz de distancias
+D1.dis <- as.dist(D1.dis)
+
+
+setwd(paste(setwd,'/Data R', sep=""))
+save.image("Codigo Tesis - Carga de datos demograficos.RData")
+
