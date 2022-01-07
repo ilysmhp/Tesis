@@ -1,0 +1,145 @@
+load('~/Matematicas Aplicadas/Tesis/Data R/Codigo Tesis Parte 4- Eleccion de K.RData')
+load('~/Matematicas Aplicadas/Tesis/Data R/Codigo Tesis - Carga de datos demograficos.RData')
+library(ggplot2);library(NbClust);library(ClustGeo);library(ggplot2)
+library("readxl");library(purrr); library(cluster)
+library(factoextra)
+
+plot(tree, hang=-1, label=FALSE, xlab="", sub="", main="", ylab = "Altura")
+rect.hclust(tree, k=5, border=rainbow(5))
+# * * * * * * * * * * * * * * *  PASO 5 * * * * * * * * * * * * * * * * * * * * 
+# * * * *  * Descripciones de los grupos sociodemograficos * * * * * * * * * * *
+# * * * * * * * * * * * * * * *  * * *  * * * * * * * * * * * * * * * * * * * * 
+#"#FFE699", # naranja 3 
+P5 <- cutree(tree, 5) 
+colores <- c("#FF9292", # rosa fuerte -> rank 1
+             "#FFCCD2", # rosa claro -> rank 3
+             "#FFCE41", # naranja -> rank 2 
+             "#FFF700", # amarillo -> rank 4
+             "#CAFF00") # verde -> rank 5
+
+data_tasas$K <-P5
+# * * * * * * * * * * * * * * *  PCA * * * * * * * * * * * * * * * * * * * * 
+pca <- prcomp((datos), scale=TRUE)
+Cols <- function(vec){
+  cols=colores
+  return(cols[as.numeric(as.factor((vec)))])
+}
+datos$K <- P5
+
+# No olvidar que datos contiene solo las variables de interés 
+# y data_tasas contiene todas las variables
+
+# ----------------------- Gráficas de la varianza explicada
+std_dev <- pca$sdev
+pr_var <- std_dev^2
+prop_varex <- pr_var / sum(pr_var)
+
+
+# Varianza explicada
+ggplot(data.frame(x = 1:length(prop_varex), y = prop_varex),
+       aes(x=x, y=y))+
+  geom_line( color="grey")+
+  geom_point(shape=21, color="grey", fill="#1597E5", size=2)+
+  theme_light(base_family = "Quicksand") +
+  labs( title= "Varianza Explicada", 
+        y="Proporción de Varianza explicada", x = "Componente Principal")+
+  scale_x_continuous(breaks = pretty(1:length(prop_varex), n = 10))+
+  scale_y_continuous(breaks = pretty(0:1, n = 20)) 
+
+
+# Varianza acomulada
+ggplot(data.frame(x = 1:length(prop_varex), y = prop_varex),
+       aes(x=x, y=cumsum(y)))+
+  geom_line( color="grey")+
+  geom_point(shape=21, color="grey", fill="#1597E5", size=2)+
+  theme_light(base_family = "Quicksand") +
+  labs( title= "Varianza Explicada Acomulada", 
+        y="Proporción de Varianza acomulada", x = "Componente Principal")+
+  scale_x_continuous(breaks = pretty(1:length(prop_varex), n = 10))+
+  scale_y_continuous(breaks = pretty(0:1, n = 10)) 
+
+# ---------------------------------------- resumen
+summary(pca)  
+
+# Grafica con el componente principal 1 y 2 
+grupos <- factor(datos$K)
+ggplot(data.frame(pca$x))+
+  geom_point(aes(x=pca$x[,1], y=pca$x[,2], col = grupos ))+
+  theme_minimal() +
+  labs(x = "Z1",y= "Z2")+ theme(legend.position="bottom") + 
+  scale_color_manual(values=colores)  
+
+
+scores <- abs(pca$rotation[,1])
+# ordena los scores del PCA
+scores_ranked <- sort(scores, decreasing = TRUE)
+
+
+# * * * * * * * *  Descripción de los Grupos * * * * * * * * * * *  * * 
+
+# Se hace el analisis descriptivo
+ggplot(datos, aes(x=as.factor(K), y=pobreza_e_pob)) + 
+  geom_boxplot(fill=colores, alpha=0.6) + 
+  xlab("Grupo") + theme_minimal(base_family = "Quicksand") 
+  #ggtitle()
+
+
+grupo <- data_tasas[which(data_tasas$K=="5"),]
+dim(grupo)
+summary(grupo)
+# * * * * * * * *  Mapas * * * * * * * * * * *  * * 
+
+# Se graficas los mapas, coloreados por clusters
+# Aquí los colores se llenan directamente desde colores porque ya tenemos
+# qué cluster es
+windows()
+sp::plot(datos_espaciales, border="grey", col= Cols(datos$K))
+legend("topleft", legend=paste("cluster", 1:5), fill= colores, bty="n", border="white")
+
+# Directorio en donde se quieren guardar los mapas 
+directorio <- "C:/Users/Coffe/Documents/Matematicas Aplicadas/Tesis/Mapas/"
+for (i in unique(datos_espaciales$CVE_ENT)) {
+  j <- as.numeric(i)
+  estado <- unique(inegi$estado[which(inegi$ENTIDAD==j)])
+  png(filename = paste(directorio, 
+                       estado,
+                       ".jpg"))
+  sp::plot(datos_espaciales[which(datos_espaciales$CVE_ENT==i),],
+           col=colores[data_tasas[which(data_tasas$estado==estado),]$K]) 
+  dev.off()
+}
+
+# Proporción de clúster en cada estado 
+grupo <- data_tasas[which(data_tasas$K=="1"),]
+grupo$estado
+table(grupo$estado)
+rank(table(grupo$estado))
+
+
+# Le metes el número del grupo que quieres y devuelve
+# el total y porcentaje del estado con ese grupo
+porcentaje_grupo_estado <- function(g){
+  grupo <- data_tasas[which(data_tasas$K==g),]
+  
+  por_grupo <-  grupo %>% 
+                group_by(estado) %>%
+                count(estado) %>%
+                arrange(estado)
+  
+  general <- data_tasas %>% 
+            group_by(estado) %>%
+            count(estado) %>%
+            arrange(estado)
+  
+  tabla <- merge(por_grupo, general,by="estado")
+  return( tabla %>%
+          mutate(porcentaje = (n.x/n.y)*100) %>% 
+            arrange(desc(porcentaje)) )
+}
+
+
+porcentaje_grupo_estado(5) 
+
+
+setwd(paste(setwd,'/Data R', sep=""))
+save.image("Descripción datos sociodemograficos.RData")
